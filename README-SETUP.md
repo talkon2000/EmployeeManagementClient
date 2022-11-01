@@ -39,6 +39,20 @@ _Repeat this process choosing your group account and the role `SE_Unit_5_Group_T
 
 We'll do most of our development locally with `sam` like we've been doing so far. Requests that access and/or manipulate data in DynamoDB will continue to reach out to the DynamoDB tables in AWS. There are 3 different scenarios that you will use. You should work through each Scenario in order the first time through to configure all the necessary parts.
 
+### Prerequisites
+
+We need to install something called NodeJS before we can run some of the commands below (the `npm` ones).
+
+- On Windows / WSL:
+```shell
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - &&\
+sudo apt-get install -y nodejs
+```
+- On macOS:
+```shell
+brew install node
+```
+
 ### Scenario 1: Local Backend, Local Frontend
 
 In this scenario you will run both the backend and frontend locally on your laptop. You should use your **individual** AWS account in this scenario so that all data in DDB is yours and yours alone. Even though we'll be running the backend locally, we need some DynamoDB tables created in AWS so the setup for this involves some remote AWS configuration.
@@ -46,17 +60,18 @@ In this scenario you will run both the backend and frontend locally on your lapt
 1. Run the Lambda service (aka the backend):
    - Build the Java code: `sam build`
    - Create an S3 bucket: `aws s3 mb s3://nss-s3-c##-u5-project-YOUR.NAME` (Replace `c##` with your cohort number, e.g. `c01` for Cohort 1, and replace `YOUR.NAME` with your first and last name.)
-      > **TIP:** You only need to do this once.
-   - Deploy the SAM template: `sam deploy --s3-bucket BUCKET_FROM_ABOVE --parameter-overrides "S3Bucket=BUCKET_FROM_ABOVE"`
-      > **NOTE:** _Yes you have to provide the same S3 bucket name twice. Yes this is annoying._
+     > **TIP:** You only need to do this once.
+   - Deploy the SAM template: `sam deploy --s3-bucket BUCKET_FROM_ABOVE --parameter-overrides S3Bucket=BUCKET_FROM_ABOVE FrontendDeployment=local`
+     > **NOTE:** _Yes you have to provide the same S3 bucket name twice. Yes this is annoying._
    - Create some sample data: `aws dynamodb batch-write-item --request-items file://data/data.json`
-      > **TIP:** You only need to do this once.
-      >
-      > _The sample data provided here is specific to the Music Playlist Service, you will either delete or replace this when you start your own project, but it's quite useful for now when you're trying to get everything working._
+     > **TIP:** You only need to do this once.
+     >
+     > _The sample data provided here is specific to the Music Playlist Service, you will either delete or replace this when you start your own project, but it's quite useful for now when you're trying to get everything working._
    - Run the local API: `sam local start-api --warm-containers LAZY`
 2. Run a local web server (aka the frontend):
+   - CD into the web directory: `cd web`
    - Install dependencies : `npm install`
-       > **TIP:** You only need to do this once - _unless_ you add/change Javascript dependencies.
+     > **TIP:** You only need to do this once - _unless_ you add/change Javascript dependencies.
    - Run the local server: `npm run run-local`
 
 After doing all of this, you will have a server running on port `8000` - you can access it by going to [http://localhost:8000](http://localhost:8000) in your browser. Create a playlist, add some songs to it (see [data.json](./data/data.json) for sample ASIN and track numbers you can use).
@@ -69,15 +84,17 @@ In this scenario you will deploy the backend to AWS and run the frontend locally
 
 1. Deploy the Lambda service (aka the backend):
    - Build the Java code: `sam build`
-   - Deploy it: `sam deploy --s3-bucket BUCKET_FROM_ABOVE --parameter-overrides "S3Bucket=BUCKET_FROM_ABOVE"`
+   - Deploy it: `sam deploy --s3-bucket BUCKET_FROM_ABOVE --parameter-overrides S3Bucket=BUCKET_FROM_ABOVE FrontendDeployment=local`
 2. Get the ID of the API Gateway:
     ```shell
     aws cloudformation describe-stack-resource --stack-name music-playlist-service --logical-resource-id ServerlessRestApi | \
     jq '.StackResourceDetail.PhysicalResourceId'
     ```
-    > **TIP:** This will be a 10 digit alphanumeric string. Alternatively you can login to the AWS web management console and get the ID from there.
-3. Run a local web server (aka the frontend): `U5_API_RESOURCE_ID=ID_FROM_ABOVE npm run run-local`
-    > **TIP:** The string `U5_API_RESOURCE_ID` is an [environment variable](https://en.wikipedia.org/wiki/Environment_variable) that the frontend configuration is looking for to know whether it should connect to the localhost or a remote host.
+   > **TIP:** This will be a 10 digit alphanumeric string. Alternatively you can login to the AWS web management console and get the ID from there.
+3. Run a local web server (aka the frontend):
+   - CD into the web directory: `cd web`
+   - `U5_API_RESOURCE_ID=ID_FROM_ABOVE npm run run-local`
+     > **TIP:** The string `U5_API_RESOURCE_ID` is an [environment variable](https://en.wikipedia.org/wiki/Environment_variable) that the frontend configuration is looking for to know whether it should connect to the localhost or a remote host.
 
 After doing all of this, you will have a server running on port `8000` - you can access it by going to [http://localhost:8000](http://localhost:8000) in your browser. The difference from Scenario 1 is that now the Lambda functions are running in AWS. If you open the developer tools in your browser you will see requests being made to a URL like `https://GATEWAY_RESOURCE_ID.execute-api.us-east-2.amazonaws.com/Prod`. Once you have made several requests this should be noticeably faster than running the code locally on your laptop.
 
@@ -120,7 +137,7 @@ Before this scenario will work, you need to perform a few steps:
 4. Run `sam pipeline init`: This will create the workflow file needed to enable GitHub Actions to build and deploy your code. Use the following answers to the questions asked (otherwise accept the default):
    - Pipeline template: "2 - Custom Pipeline Template Location"
    - Template Git location: `git@github.com:NSS-Software-Engineering/u5-pipeline-template.git`
-      > **NOTE:** You can see this repo [here](https://github.com/NSS-Software-Engineering/u5-pipeline-template) if you are interested.
+     > **NOTE:** You can see this repo [here](https://github.com/NSS-Software-Engineering/u5-pipeline-template) if you are interested.
    - Stage configuration name: "1" (ServiceStage - you created that earlier).
    - "What is the sam application stack name": provide a descriptive name with no spaces in it; when starting with the example code you might want to use something like `music-playlist-service`, but when you start building your own service you should rename this to something that makes more sense.
    - "What is the API Resource ID": Accept the default value ("TODO-REPLACE") the first time you run this, we haven't created our API gateway yet (the one you created earlier was in your _individual_ account but this is for the _group_ account). If you are rerunning this at a later point and know what the Gateway Resource ID is, you can enter it here.
