@@ -138,9 +138,9 @@ To stop either the local backend (the `sam local...` command) or local frontend 
 <!-- CONTACT -->
 ## Contact
 
-Josh Taylor - [joshmtaylor2000@gmail.com] (joshmtaylor2000@gmail.com)
+Josh Taylor - [Email](joshmtaylor2000@gmail.com) - [LinkedIn](https://www.linkedin.com/in/josh-taylor-92b293251/)
 
-Project Link: [https://github.com/talkon2000/EmployeeManagementClient](https://github.com/talkon2000/EmployeeManagementClientp)
+Project Link: [https://github.com/talkon2000/EmployeeManagementClient](https://github.com/talkon2000/EmployeeManagementClient)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
